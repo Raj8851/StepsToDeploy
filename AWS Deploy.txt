@@ -1,0 +1,209 @@
+Postgre Password post@786
+DATABASE Name: my_db
+user name : my_user
+user pass : user@786
+
+-----------------------Django Deplyment
+
+1. sudo apt update
+2. sudo apt install python3-venv python3-dev
+3. python3 -m venv env
+4. source env/bin/activate
+5. sudo apt-get install -y nginx
+6. pip install gunicorn
+7. sudo apt-get install supervisor
+
+deactivate env	
+git clone project
+source env/bin/activate
+cd projectname
+pip install -r requirements.txt
+ 
+
+8. cd /etc/supervisor/conf.d/
+9. sudo touch gunicorn.conf
+10. sudo nano gunicorn.conf
+
+11. [program:gunicorn]
+    directory=/home/ubuntu/iblogs
+    command=/home/ubuntu/env/bin/gunicorn --workers 3 --bind     unix:/home/ubuntu/iblogs/app.sock iblogs.wsgi:application  
+    autostart=true
+    autorestart=true
+    stderr_logfile=/var/log/gunicorn/gunicorn.err.log
+    stdout_logfile=/var/log/gunicorn/gunicorn.out.log
+
+    [group:guni]
+    programs:gunicorn
+    
+   
+
+
+
+12. sudo mkdir /var/log/gunicorn
+13. sudo supervisorctl reread
+14. sudo supervisorctl update
+15. sudo supervisorctl status
+16. cd
+17. cd /etc/nginx 
+18. sudo nano nginx.conf
+    user root
+
+19. cd sites-available
+20. sudo touch django.conf
+21. sudo nano django.conf
+    server{
+
+        listen 80;
+        server_name 15.206.80.45;
+
+        
+        location / {
+
+            include proxy_params;
+            proxy_pass http://unix:/home/ubuntu/iblogs/app.sock;
+
+        }
+
+    }
+
+
+22. sudo nginx -t
+23. sudo ln django.conf /etc/nginx/sites-enabled
+24. sudo service nginx restart
+================================================
+   If Instance is stoped, then restart intance change IP 
+   Or If you make any changes in Project, then stop intance and run again and change IP
+    cd
+    cd /etc/nginx/sites-available
+
+    sudo nano django.conf
+
+    server{
+
+        listen 80;
+        server_name 65.0.133.98;
+
+        
+        location / {
+
+            include proxy_params;
+            proxy_pass http://unix:/home/ubuntu/csat_project/app.sock;
+
+        }
+
+    }
+
+
+sudo systemctl reload nginx
+sudo service nginx restart
+
+------------------------------------------------------
+To resolve Media and static issue while production if Debug=False
+Follow https://dev.to/vincod/django-staticfiles-and-media-not-showing-when-debug-false-fixed-139a
+https://wolfx.io/how-to-serve-static-and-media-files-in-nginx
+
+In urls.py in project *not * app urls.py:
+
+from django.contrib import admin
+from django.urls import path, include, re_path
+from django.conf import settings
+from django.conf.urls.static import static
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns # new
+
+
+from django.conf import settings
+
+from django.views.static import serve
+
+
+urlspatterns :
+urlpatterns = [
+re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
+re_path(r'^static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
+]
+
+
+Settings.py
+STATIC_URL = '/static/'
+
+MEDIA_URL = '/media/'
+
+if DEBUG:
+
+    STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+
+else:
+
+    STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+-------------------------------------------------------------
+Create Vartual Envirement
+
+python -m virtualenv env
+Now install required library like django 
+
+------------------------------------------------------------
+Create Requirements.txt file
+
+pip freeze > requirements.txt
+
+--------------------------------------------------------------
+
+Iblogs_stock Postres password stock@102504
+CREATE DATABASE iblogs_stocks_db;
+
+
+---------------------------------------------------------------------------
+Git CLone and Push
+
+git init
+git add .   (to add files)
+git commit -m "AddProject to Git"
+git remote add origin "URLofGitRep"  (to remove- git remote remove origin)
+git push origin master
+
+--------------------
+git remote -v (to know origin)
+git remote remove origin
+git remote set-url
+
+------------------------------------------------
+Postgresql installation on ubuntu
+
+
+host all all 0.0.0.0/0 md5
+host all all ::0/0 md5
+
+------------------
+[Unit]
+Description=gunicorn daemon
+Requires=gunicorn.socket
+After=network.target
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/iblogs
+ExecStart=/home/ubuntu/iblogs/env/bin/gunicorn \
+          --access-logfile - \
+          --workers 3 \
+          --bind unix:/run/gunicorn.sock \
+          iblogs.wsgi:application
+[Install]
+WantedBy=multi-user.target
+
+-------------
+server {
+    listen 80 default_server;
+    server_name 65.0.31.143;
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location /static/ {
+        root /home/ubuntu/iblogs;
+    }
+    location / {
+        include proxy_params;
+        proxy_pass http://unix:/run/gunicorn.sock;
+    }
+}
