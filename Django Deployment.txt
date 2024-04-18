@@ -57,3 +57,11 @@ pip install -r requirements.txt
 22. sudo nginx -t
 23. sudo ln django.conf /etc/nginx/sites-enabled
 24. sudo service nginx restart
+--------------------------------------------
+If Instance Stopped, then move to below location
+/etc/nginx/sites-available
+sudo nano django.conf, here change IP address
+save and exit
+cd
+sudo supervisorctl reload (without env) in change in project
+sudo service nginx restart  if change in nginx config...
